@@ -65,13 +65,20 @@ if log:
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
+def get_instance_type(job_name):
+    if job_name.startswith("ct_"):
+        return "mem1_ssd1_x8"
+    else:
+        return None
+
 def run_script(job_data, job_type = "SGE" ):
     script_file = dxpy.upload_local_file(job_data["script_fn"])
     host_addr = ".".join(re.search("ec2-(\d+)-(\d+)-(\d+)-(\d+)", dxpy.DXJob(dxpy.JOB_ID).host).groups())
     job = dxpy.new_dxjob(fn_input=dict(script_file=script_file.get_id(),
                                        origin_job_addr=host_addr),
                          fn_name="run_script",
-                         name=job_data["job_name"])
+                         name=job_data["job_name"],
+                         instance_type=get_instance_type(job_data["job_name"]))
     print "Launched", job.get_id()
     sys.stdout.flush()
     return
