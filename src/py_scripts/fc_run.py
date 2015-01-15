@@ -51,6 +51,7 @@ import time
 import logging
 import uuid
 
+import subprocess
 import dxpy
 
 wait_time = 5
@@ -72,6 +73,9 @@ def get_instance_type(job_name):
         return None
 
 def run_script(job_data, job_type = "SGE" ):
+    if job_data["job_name"].startswith("build_rdb"):
+        subprocess.check_call("set -e; source " + job_data["script_fn"], shell=True, executable="/bin/bash", cwd=job_data["cwd"])
+        return
     script_file = dxpy.upload_local_file(job_data["script_fn"])
     host_addr = ".".join(re.search("ec2-(\d+)-(\d+)-(\d+)-(\d+)", dxpy.DXJob(dxpy.JOB_ID).host).groups())
     job = dxpy.new_dxjob(fn_input=dict(script_file=script_file.get_id(),
